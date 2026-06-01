@@ -1,107 +1,89 @@
 ﻿// ============================================================
-//  Ejercicio 1 – Invertir un número
+//  Ejercicio 2
 //  Curso: Taller de Lenguajes I  |  Lenguaje: C#
 // ============================================================
-
-// "using" importa un espacio de nombres (namespace).
-// Es equivalente al #include de C, pero para la biblioteca
-// estándar de .NET. "System" contiene Console, int, string, etc.
 using System;
 
-// Un "namespace" agrupa clases relacionadas (como un módulo).
-// En C no existe este concepto; en C# es una buena práctica
-// siempre declarar uno.
-namespace InvertirNumero
+namespace CalculadoraV1
 {
-    // En C# TODO el código debe vivir dentro de una clase.
-    // No hay funciones "sueltas" como en C.
-    // "static" significa que la clase no se instancia; actúa
-    // como contenedor de métodos de utilidad.
     internal static class Program
     {
-        // Punto de entrada del programa.
-        // Equivalente al  int main(void)  de C.
-        // "static" → se llama sin crear un objeto.
-        // "void"   → no retorna nada al sistema operativo
-        //            (en C# también existe Main que retorna int,
-        //             pero void es la forma más común).
         static void Main()
         {
-            // ── 1. Leer la entrada del usuario ──────────────────────
-            // Console.Write  → imprime sin salto de línea (como printf sin \n)
-            // Console.WriteLine → imprime CON salto de línea (como printf con \n)
-            Console.Write("Ingresá un número: ");
+            bool continuar = true;
 
-            // Console.ReadLine() lee toda una línea como string.
-            // Devuelve string? (nullable) en .NET moderno; el
-            // operador  ??  provee un valor por defecto si es null.
-            // En C usarías fgets() o scanf(); aquí es más seguro
-            // porque ReadLine nunca desborda el buffer.
-            string entrada = Console.ReadLine() ?? string.Empty;
-
-            // ── 2. Validar que la entrada sea un número entero ───────
-            // int.TryParse intenta convertir el string a int.
-            //   • Si tiene éxito → devuelve true y escribe el valor
-            //     en la variable de salida "numero" (parámetro out).
-            //   • Si falla   → devuelve false y "numero" queda en 0.
-            //
-            // En C harías: sscanf(entrada, "%d", &numero) != 1
-            // o strtol() con manejo manual de errores.
-            // TryParse es más seguro y expresivo.
-            if (!int.TryParse(entrada, out int numero))
+            while (continuar)
             {
-                // La interpolación de strings usa el prefijo $ y {}.
-                // Equivalente a printf("... %s ...\n", entrada) en C.
-                Console.WriteLine($"Error: \"{entrada}\" no es un número entero válido.");
+                // ── Menú ────────────────────────────────────────────
+                Console.WriteLine("\n=== CALCULADORA ===");
+                Console.WriteLine("1. Sumar");
+                Console.WriteLine("2. Restar");
+                Console.WriteLine("3. Multiplicar");
+                Console.WriteLine("4. Dividir");
+                Console.Write("Seleccioná una opción (1-4): ");
 
-                // Devuelve el control al sistema (fin del programa).
-                // Como el return al final de main() en C.
-                return;
+                string opcionEntrada = Console.ReadLine() ?? string.Empty;
+
+                // int.TryParse: convierte el string a int de forma segura.
+                // Si falla devuelve false y opcion queda en 0.
+                if (!int.TryParse(opcionEntrada, out int opcion) || opcion < 1 || opcion > 4)
+                {
+                    Console.WriteLine("Opción inválida. Intentá de nuevo.");
+                    continue; // Vuelve al inicio del while sin pedir números
+                }
+
+                // ── Leer los dos números ────────────────────────────
+                Console.Write("Ingresá el primer número: ");
+                string entrada1 = Console.ReadLine() ?? string.Empty;
+
+                Console.Write("Ingresá el segundo número: ");
+                string entrada2 = Console.ReadLine() ?? string.Empty;
+
+                // double.TryParse: igual que int.TryParse pero para decimales.
+                if (!double.TryParse(entrada1, out double a) || !double.TryParse(entrada2, out double b))
+                {
+                    Console.WriteLine("Uno o ambos valores ingresados no son números válidos.");
+                    continue;
+                }
+
+                // ── Calcular y mostrar resultado ────────────────────
+                // switch en C# funciona igual que en C.
+                // Se agrega el caso de división por cero específico para opcion 4.
+                switch (opcion)
+                {
+                    case 1:
+                        Console.WriteLine($"Resultado: {a} + {b} = {a + b}");
+                        break;
+                    case 2:
+                        Console.WriteLine($"Resultado: {a} - {b} = {a - b}");
+                        break;
+                    case 3:
+                        Console.WriteLine($"Resultado: {a} * {b} = {a * b}");
+                        break;
+                    case 4:
+                        if (b == 0)
+                        {
+                            Console.WriteLine("Error: no se puede dividir por cero.");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Resultado: {a} / {b} = {a / b}");
+                        }
+                        break;
+                }
+
+                // ── ¿Repetir? ───────────────────────────────────────
+                Console.Write("\n¿Deseás realizar otro cálculo? (s/n): ");
+
+                // ToLower() convierte el string a minúsculas para aceptar S y s.
+                // En C harías tolower() carácter a carácter.
+                string respuesta = (Console.ReadLine() ?? string.Empty).ToLower();
+
+                // Trim() elimina espacios en blanco al inicio y al final del string.
+                continuar = respuesta.Trim() == "s";
             }
 
-            // ── 3. Verificar que el número sea mayor que 0 ───────────
-            if (numero <= 0)
-            {
-                Console.WriteLine($"El número {numero} no es mayor a 0. No se realizará la inversión.");
-                return;
-            }
-
-            // ── 4. Invertir el número ────────────────────────────────
-            // Llamada al método auxiliar definido más abajo.
-            // En C sería una llamada a función normal: Invertir(numero)
-            int invertido = Invertir(numero);
-
-            // Mostramos el resultado con interpolación de strings.
-            Console.WriteLine($"Número original : {numero}");
-            Console.WriteLine($"Número invertido: {invertido}");
-        }
-
-        // ── Método auxiliar ──────────────────────────────────────────
-        // "private" → solo visible dentro de esta clase.
-        // "static"  → no necesita instancia para ser llamado
-        //             (igual que una función libre en C).
-        // "int"     → tipo de retorno, idéntico a C.
-        //
-        // En C sería:   int Invertir(int n) { ... }
-        private static int Invertir(int n)
-        {
-            // Variable local que acumulará el número invertido.
-            int resultado = 0;
-
-            // Algoritmo clásico de inversión de dígitos:
-            //   extraemos el último dígito con % 10,
-            //   lo "pegamos" a resultado desplazando los anteriores,
-            //   y eliminamos ese dígito de n con / 10.
-            // Este algoritmo es IDÉNTICO en C y en C#.
-            while (n > 0)
-            {
-                int digito = n % 10;          // Último dígito
-                resultado = resultado * 10 + digito; // Acumular
-                n /= 10;                      // Quitar ese dígito
-            }
-
-            // "return" funciona igual que en C.
-            return resultado;
+            Console.WriteLine("¡Hasta luego!");
         }
     }
 }
